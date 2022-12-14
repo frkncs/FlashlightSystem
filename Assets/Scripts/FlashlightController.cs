@@ -12,6 +12,9 @@ public class FlashlightController : MonoBehaviour
     
     // Private Variables
     [SerializeField] private KeyCode useFlashlightKey;
+    [SerializeField] private Transform deactiveFlashlightTargetTransform;
+    [SerializeField] private Transform activeFlashlightTargetTransform;
+    [SerializeField] private float animationSpeed = 12;
 
     private Light _light;
     private FlashlightBaseState _currentState;
@@ -43,7 +46,7 @@ public class FlashlightController : MonoBehaviour
         }
         
         _light.enabled = true;
-        _flashlightAnimCor = StartCoroutine(PlayActivateAnim());
+        PlayActivateAnim();
     }
 
     public void DeactivateFlashlight()
@@ -54,28 +57,47 @@ public class FlashlightController : MonoBehaviour
         }
         
         _light.enabled = false;
-        _flashlightAnimCor = StartCoroutine(PlayDeactivateAnim());
+        PlayDeactivateAnim();
     }
     
     public void ChangeState(FlashlightBaseState newState) => _currentState = newState;
 
-    private IEnumerator PlayActivateAnim()
+    private void PlayActivateAnim()
     {
+        _flashlightAnimCor =
+            StartCoroutine(SetTransformToTargetTransform(transform, activeFlashlightTargetTransform, animationSpeed));
+    }
+    
+    private void PlayDeactivateAnim()
+    {
+        _flashlightAnimCor =
+            StartCoroutine(SetTransformToTargetTransform(transform, deactiveFlashlightTargetTransform, animationSpeed));
+    }
+
+    private IEnumerator SetTransformToTargetTransform(Transform transformToChange, Transform targetTransform, float speed)
+    {
+        Vector3 currentPosition = transformToChange.position;
+        Quaternion currentRotation = transformToChange.rotation;
+
+        Vector3 targetPos = targetTransform.position;
+        Quaternion targetRot = targetTransform.rotation;
+
+        float timeCount = 0;
+        
         while (true)
         {
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, 12 * Time.deltaTime);
+            transformToChange.position = Vector3.Lerp(currentPosition, targetPos, timeCount);
+            transformToChange.rotation = Quaternion.Slerp(currentRotation, targetRot, timeCount);
 
-            if (transform.rotation == Quaternion.identity)
+            timeCount += Time.deltaTime * speed;
+
+            if (transformToChange.rotation == targetRot &&
+                transformToChange.position == targetPos)
             {
                 break;
             }
             
             yield return null;
         }
-    }
-
-    private IEnumerator PlayDeactivateAnim()
-    {
-        yield return null;
     }
 }
