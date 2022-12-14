@@ -1,3 +1,3 @@
 # Unity Flashlight System
 
-This is so basic system. It include flashlight movement, flashlight light effect etc.
+This is so basic system. It includes things like flashlight gesture, light effect
